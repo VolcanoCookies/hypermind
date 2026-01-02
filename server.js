@@ -1,7 +1,6 @@
 const express = require('express');
 const Hyperswarm = require('hyperswarm');
 const crypto = require('crypto');
-const b4a = require('b4a');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -169,7 +168,7 @@ app.get('/', (req, res) => {
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Hypermind Counter</title>
+            <title>Hypermind</title>
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <style>
                 body { 
