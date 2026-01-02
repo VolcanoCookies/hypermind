@@ -181,7 +181,8 @@ app.get('/', (req, res) => {
                     color: #eee; 
                     margin: 0; 
                 }
-                .container { text-align: center; }
+                .container { text-align: center; position: relative; z-index: 10; }
+                #network { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
                 .count { font-size: 8rem; font-weight: bold; color: #4ade80; transition: color 0.2s; }
                 .label { font-size: 1.5rem; color: #9ca3af; margin-top: 1rem; }
                 .footer { margin-top: 2rem; font-size: 0.9rem; color: #4b5563; }
@@ -196,6 +197,7 @@ app.get('/', (req, res) => {
             </style>
         </head>
         <body>
+            <canvas id="network"></canvas>
             <div class="container">
                 <div id="count" class="count">${count}</div>
                 <div class="label">Active Nodes</div>
@@ -211,12 +213,96 @@ app.get('/', (req, res) => {
                 const countEl = document.getElementById('count');
                 const directEl = document.getElementById('direct');
                 
+                // Particle System
+                const canvas = document.getElementById('network');
+                const ctx = canvas.getContext('2d');
+                let particles = [];
+
+                function resize() {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                }
+                window.addEventListener('resize', resize);
+                resize();
+
+                class Particle {
+                    constructor() {
+                        this.x = Math.random() * canvas.width;
+                        this.y = Math.random() * canvas.height;
+                        this.vx = (Math.random() - 0.5) * 1;
+                        this.vy = (Math.random() - 0.5) * 1;
+                        this.size = 3;
+                    }
+
+                    update() {
+                        this.x += this.vx;
+                        this.y += this.vy;
+
+                        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+                    }
+
+                    draw() {
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                        ctx.fillStyle = '#4ade80';
+                        ctx.fill();
+                    }
+                }
+
+                function updateParticles(count) {
+                    const currentCount = particles.length;
+                    if (count > currentCount) {
+                        for (let i = 0; i < count - currentCount; i++) {
+                            particles.push(new Particle());
+                        }
+                    } else if (count < currentCount) {
+                        particles.splice(count, currentCount - count);
+                    }
+                }
+                
+                // Initialize with server-rendered count
+                updateParticles(${count});
+
+                function animate() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Draw connections
+                    ctx.strokeStyle = 'rgba(74, 222, 128, 0.15)';
+                    ctx.lineWidth = 1;
+                    for (let i = 0; i < particles.length; i++) {
+                        for (let j = i + 1; j < particles.length; j++) {
+                            const dx = particles[i].x - particles[j].x;
+                            const dy = particles[i].y - particles[j].y;
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+
+                            if (distance < 150) {
+                                ctx.beginPath();
+                                ctx.moveTo(particles[i].x, particles[i].y);
+                                ctx.lineTo(particles[j].x, particles[j].y);
+                                ctx.stroke();
+                            }
+                        }
+                    }
+
+                    particles.forEach(p => {
+                        p.update();
+                        p.draw();
+                    });
+
+                    requestAnimationFrame(animate);
+                }
+
+                animate();
+
                 // Use Server-Sent Events for realtime updates
                 const evtSource = new EventSource("/events");
                 
                 evtSource.onmessage = (event) => {
                     const data = JSON.parse(event.data);
                     
+                    updateParticles(data.count);
+
                     // Only update and animate if changed
                     if (countEl.innerText != data.count) {
                         countEl.innerText = data.count;
