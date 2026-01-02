@@ -75,6 +75,85 @@ function markRelayed(id, seq) {
 // Rotate bloom filters periodically
 setInterval(rotateBloomFilters, 30000);
 
+// --- HYPERLOGLOG FOR PEER COUNTING ---
+// Approximate unique peer count with fixed ~1.5KB memory
+// Accuracy: ~2% error rate, can count millions of peers
+class HyperLogLog {
+  constructor(precision = 10) {
+    // 2^precision registers, precision=10 gives 1024 registers (~1KB)
+    this.precision = precision;
+    this.registerCount = 1 << precision;
+    this.registers = new Uint8Array(this.registerCount);
+    this.alphaMM = this._getAlpha() * this.registerCount * this.registerCount;
+  }
+
+  _getAlpha() {
+    // Bias correction constant
+    switch (this.precision) {
+      case 4: return 0.673;
+      case 5: return 0.697;
+      case 6: return 0.709;
+      default: return 0.7213 / (1 + 1.079 / this.registerCount);
+    }
+  }
+
+  _hash(str) {
+    // Simple 32-bit hash (good enough for HLL)
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = (h * 0x01000193) >>> 0;
+    }
+    return h;
+  }
+
+  _countLeadingZeros(value, maxBits) {
+    if (value === 0) return maxBits;
+    let count = 0;
+    while ((value & (1 << (maxBits - 1 - count))) === 0 && count < maxBits) {
+      count++;
+    }
+    return count;
+  }
+
+  add(item) {
+    const hash = this._hash(item);
+    // Use first 'precision' bits for register index
+    const registerIndex = hash >>> (32 - this.precision);
+    // Use remaining bits to count leading zeros
+    const remainingBits = hash << this.precision;
+    const leadingZeros = this._countLeadingZeros(remainingBits, 32 - this.precision) + 1;
+    
+    // Store maximum leading zeros seen for this register
+    if (leadingZeros > this.registers[registerIndex]) {
+      this.registers[registerIndex] = leadingZeros;
+    }
+  }
+
+  count() {
+    // Harmonic mean of 2^register values
+    let harmonicSum = 0;
+    let zeroRegisters = 0;
+    
+    for (let i = 0; i < this.registerCount; i++) {
+      harmonicSum += Math.pow(2, -this.registers[i]);
+      if (this.registers[i] === 0) zeroRegisters++;
+    }
+    
+    let estimate = this.alphaMM / harmonicSum;
+    
+    // Small range correction (linear counting)
+    if (estimate <= 2.5 * this.registerCount && zeroRegisters > 0) {
+      estimate = this.registerCount * Math.log(this.registerCount / zeroRegisters);
+    }
+    
+    return Math.round(estimate);
+  }
+}
+
+// Global peer counter - tracks all unique peers ever seen
+const peerCounter = new HyperLogLog(10); // ~1KB, 2% error
+
 // --- SECURITY ---
 // We use Ed25519 for signatures and a PoW puzzle to prevent Sybil attacks.
 // Difficulty: Hash(ID + nonce) must start with '0000'
@@ -104,6 +183,7 @@ const MAX_PEERS = 10000;
 const sseClients = new Set();
 
 seenPeers.set(MY_ID, { seq: mySeq, lastSeen: Date.now() });
+peerCounter.add(MY_ID); // Count ourselves
 
 // Throttle updates to once per second
 let lastBroadcast = 0;
@@ -113,7 +193,7 @@ function broadcastUpdate() {
   lastBroadcast = now;
 
   const data = JSON.stringify({
-    count: seenPeers.size,
+    count: peerCounter.count(), // Use HyperLogLog for total peer count
     direct: swarm.connections.size,
     id: MY_ID,
   });
@@ -211,6 +291,11 @@ function handleMessage(msg, sourceSocket) {
       );
       if (!verified) return; // Invalid Signature
 
+      // Track unique peer in HyperLogLog counter (always, even if over MAX_PEERS)
+      const prevCount = peerCounter.count();
+      peerCounter.add(id);
+      const countChanged = peerCounter.count() !== prevCount;
+
       // Update Peer
       if (hops === 0) {
         sourceSocket.peerId = id;
@@ -221,7 +306,7 @@ function handleMessage(msg, sourceSocket) {
       
       seenPeers.set(id, { seq, lastSeen: now, key });
 
-      if (wasNew) broadcastUpdate();
+      if (wasNew || countChanged) broadcastUpdate();
 
       // Only relay if we haven't already relayed this message (bloom filter check)
       if (hops < 3 && !hasRelayedMessage(id, seq)) {
@@ -324,7 +409,7 @@ process.on("SIGTERM", handleShutdown);
 // --- WEB SERVER ---
 
 app.get("/", (req, res) => {
-  const count = seenPeers.size;
+  const count = peerCounter.count(); // HyperLogLog approximate count
   const directPeers = swarm.connections.size;
 
   res.send(`
@@ -500,7 +585,7 @@ app.get("/events", (req, res) => {
   sseClients.add(res);
 
   const data = JSON.stringify({
-    count: seenPeers.size,
+    count: peerCounter.count(),
     direct: swarm.connections.size,
     id: MY_ID,
   });
@@ -513,7 +598,7 @@ app.get("/events", (req, res) => {
 
 app.get("/api/stats", (req, res) => {
   res.json({
-    count: seenPeers.size,
+    count: peerCounter.count(),
     direct: swarm.connections.size,
     id: MY_ID,
   });
