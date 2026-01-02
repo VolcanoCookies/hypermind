@@ -1,15 +1,29 @@
 {
   "name": "hypermind",
   "version": "1.0.0",
-  "description": "",
+  "description": "A decentralized P2P counter of active deployments",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lklynet/hypermind.git"
+  },
+  "keywords": [
+    "p2p",
+    "decentralized",
+    "counter",
+    "hyperswarm",
+    "docker"
+  ],
+  "author": "lklynet",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lklynet/hypermind/issues"
+  },
+  "homepage": "https://github.com/lklynet/hypermind#readme",
   "type": "commonjs",
   "dependencies": {
     "b4a": "^1.7.3",
