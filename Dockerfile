@@ -1,19 +1,23 @@
-FROM node:18-bookworm
+FROM ubuntu:22.04
 
-WORKDIR /app
-
-# Install build dependencies
+# Install Node.js and build dependencies
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
+    curl \
     python3 \
     make \
     g++ \
-    cmake \
     git \
+    cmake \
+    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
 
 COPY package*.json ./
 
-# Install dependencies (forcing build from source to ensure glibc compatibility)
+# Install dependencies and force rebuild
 RUN npm install --production --build-from-source
 
 COPY server.js ./
