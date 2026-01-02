@@ -1,14 +1,18 @@
-FROM node:18-alpine
+FROM node:18-slim
 
 WORKDIR /app
 
 # Install build dependencies
-RUN apk add --no-cache python3 make g++ linux-headers
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
 
-# Install dependencies and rebuild native modules
-RUN npm install --production && npm rebuild
+# Install dependencies
+RUN npm install --production
 
 COPY server.js ./
 
