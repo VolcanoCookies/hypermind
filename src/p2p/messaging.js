@@ -1,5 +1,5 @@
 const { verifyPoW, verifySignature, createPublicKey } = require("../core/security");
-const { MAX_RELAY_HOPS, ENABLE_CHAT } = require("../config/constants");
+const { MAX_RELAY_HOPS, ENABLE_CHAT, CHAT_RATE_LIMIT } = require("../config/constants");
 const { BloomFilterManager } = require("../state/bloom");
 
 class MessageHandler {
