@@ -4,6 +4,10 @@ const canvas = document.getElementById('network');
 const ctx = canvas.getContext('2d');
 let particles = [];
 
+function getThemeColor(varName) {
+    return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+}
+
 function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -32,7 +36,7 @@ class Particle {
     draw() {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = '#4ade80';
+        ctx.fillStyle = getThemeColor('--color-particle');
         ctx.fill();
     }
 }
@@ -55,7 +59,7 @@ const updateParticles = (count) => {
 const animate = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx.strokeStyle = 'rgba(74, 222, 128, 0.15)';
+    ctx.strokeStyle = getThemeColor('--color-particle-link');
     ctx.lineWidth = 1;
     for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
@@ -488,4 +492,41 @@ countEl.innerText = initialCount;
 countEl.classList.add('loaded');
 updateParticles(initialCount);
 animate();
+
+const themes = [
+    'default.css',
+    'tokyo-night.css',
+    'nord-dark.css',
+    'solarized-light.css',
+    'volcano.css'
+];
+
+let currentThemeIndex = 0;
+
+function loadSavedTheme() {
+    const savedTheme = localStorage.getItem('hypermind-theme');
+    if (savedTheme) {
+        const themeLink = document.getElementById('theme-css');
+        themeLink.href = `/themes/${savedTheme}`;
+        currentThemeIndex = themes.indexOf(savedTheme);
+        if (currentThemeIndex === -1) currentThemeIndex = 0;
+    } else {
+        const themeLink = document.getElementById('theme-css');
+        const currentTheme = themeLink.href.split('/').pop();
+        currentThemeIndex = themes.indexOf(currentTheme);
+        if (currentThemeIndex === -1) currentThemeIndex = 0;
+    }
+}
+
+function cycleTheme() {
+    currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+    const newTheme = themes[currentThemeIndex];
+    const themeLink = document.getElementById('theme-css');
+    themeLink.href = `/themes/${newTheme}`;
+    localStorage.setItem('hypermind-theme', newTheme);
+}
+
+document.getElementById('theme-switcher').addEventListener('click', cycleTheme);
+
+loadSavedTheme();
 
