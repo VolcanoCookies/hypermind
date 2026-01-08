@@ -4,6 +4,10 @@ const canvas = document.getElementById('network');
 const ctx = canvas.getContext('2d');
 let particles = [];
 
+function getThemeColor(varName) {
+    return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+}
+
 function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -32,7 +36,7 @@ class Particle {
     draw() {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = '#4ade80';
+        ctx.fillStyle = getThemeColor('--color-particle');
         ctx.fill();
     }
 }
@@ -55,7 +59,7 @@ const updateParticles = (count) => {
 const animate = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx.strokeStyle = 'rgba(74, 222, 128, 0.15)';
+    ctx.strokeStyle = getThemeColor('--color-particle-link');
     ctx.lineWidth = 1;
     for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
@@ -509,4 +513,62 @@ countEl.innerText = initialCount;
 countEl.classList.add('loaded');
 updateParticles(initialCount);
 animate();
+
+const themes = [
+    'default.css',
+    'tokyo-night.css',
+    'nord-dark.css',
+    'solarized-light.css',
+    'volcano.css'
+];
+
+let currentThemeIndex = 0;
+
+// Initialize currentThemeIndex based on the theme loaded by index.html
+const currentThemeLink = document.getElementById('theme-css');
+if (currentThemeLink) {
+    const currentThemeName = currentThemeLink.href.split('/').pop();
+    currentThemeIndex = themes.indexOf(currentThemeName);
+    if (currentThemeIndex === -1) currentThemeIndex = 0;
+}
+
+function cycleTheme() {
+    const btn = document.getElementById('theme-switcher');
+    if (btn.disabled) return;
+    
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+
+    currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+    const newTheme = themes[currentThemeIndex];
+    const oldLink = document.getElementById('theme-css');
+    
+    const newLink = document.createElement('link');
+    newLink.rel = 'stylesheet';
+    newLink.href = `/themes/${newTheme}`;
+    
+    newLink.onload = () => {
+        if (oldLink) oldLink.remove();
+        newLink.id = 'theme-css';
+        localStorage.setItem('hypermind-theme', newTheme);
+        btn.disabled = false;
+        btn.style.opacity = '';
+    };
+
+    newLink.onerror = () => {
+        console.error('Failed to load theme:', newTheme);
+        newLink.remove();
+        btn.disabled = false;
+        btn.style.opacity = '';
+        currentThemeIndex = (currentThemeIndex - 1 + themes.length) % themes.length;
+    };
+    
+    if (oldLink && oldLink.parentNode) {
+        oldLink.parentNode.insertBefore(newLink, oldLink.nextSibling);
+    } else {
+        document.head.appendChild(newLink);
+    }
+}
+
+document.getElementById('theme-switcher').addEventListener('click', cycleTheme);
 

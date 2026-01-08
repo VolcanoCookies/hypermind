@@ -92,6 +92,7 @@ These features are disabled by default. Set them to `true` to enable.
 |----------|---------|-------------|
 | `ENABLE_CHAT` | `false` | Enables the decentralized chat system. |
 | `ENABLE_MAP` | `false` | Enables map visualization features. |
+| `ENABLE_THEMES` | `true` | Controls the theme switcher function ([THEMES.md](THEMES.md))
 
 ### Refinement
 Tune the network parameters to fit your system resources. The defaults are safe for most users. Don't change unless you know what you're doing.
@@ -100,7 +101,7 @@ Tune the network parameters to fit your system resources. The defaults are safe 
 |----------|---------|-------------|
 | `MAX_PEERS` | `50000` | Maximum number of peers to track in memory. |
 | `MAX_MESSAGE_SIZE` | `2048` | Maximum size of a single message in bytes. |
-| `MAX_RELAY_HOPS` | `2` | Maximum number of times a message is relayed. |
+| `MAX_RELAY_HOPS` | `5` | Maximum number of times a message is relayed. |
 | `MAX_CONNECTIONS` | `15` | Maximum number of active P2P connections. |
 | `HEARTBEAT_INTERVAL` | `30000` | How often (ms) to send heartbeat messages. |
 | `CONNECTION_ROTATION_INTERVAL` | `300000` | How often (ms) to rotate connections. |

@@ -18,7 +18,7 @@ const VERIFICATION_POW_PREFIX = "0000";
 
 const MAX_PEERS = parseInt(process.env.MAX_PEERS) || 50000;
 const MAX_MESSAGE_SIZE = parseInt(process.env.MAX_MESSAGE_SIZE) || 2048;
-const MAX_RELAY_HOPS = parseInt(process.env.MAX_RELAY_HOPS) || 2;
+const MAX_RELAY_HOPS = parseInt(process.env.MAX_RELAY_HOPS) || 5;
 const MAX_CONNECTIONS = parseInt(process.env.MAX_CONNECTIONS) || 15;
 
 const HEARTBEAT_INTERVAL = parseInt(process.env.HEARTBEAT_INTERVAL) || 30000;
@@ -29,6 +29,7 @@ const DIAGNOSTICS_INTERVAL = 10000;
 const PORT = process.env.PORT || 3000;
 const ENABLE_CHAT = process.env.ENABLE_CHAT === "true";
 const ENABLE_MAP = process.env.ENABLE_MAP === 'true';
+const ENABLE_THEMES = process.env.ENABLE_THEMES !== "false";
 const CHAT_RATE_LIMIT = parseInt(process.env.CHAT_RATE_LIMIT) || 5000;
 const VISUAL_LIMIT = parseInt(process.env.VISUAL_LIMIT) || 500;
 
@@ -49,6 +50,7 @@ module.exports = {
   PORT,
   ENABLE_CHAT,
   ENABLE_MAP,
+  ENABLE_THEMES,
   CHAT_RATE_LIMIT,
   VISUAL_LIMIT,
 };

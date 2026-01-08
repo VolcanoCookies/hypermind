@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const { signMessage } = require("../core/security");
-const { ENABLE_CHAT, ENABLE_MAP, CHAT_RATE_LIMIT, VISUAL_LIMIT } = require("../config/constants");
+const { ENABLE_CHAT, ENABLE_MAP, ENABLE_THEMES, CHAT_RATE_LIMIT, VISUAL_LIMIT } = require("../config/constants");
 
 const HTML_TEMPLATE = fs.readFileSync(
     path.join(__dirname, "../../public/index.html"),
@@ -45,6 +45,7 @@ const setupRoutes = (app, identity, peerManager, swarm, sseManager, diagnostics)
             .replace(/\{\{FULL_ID\}\}/g, identity.id)
             .replace(/\{\{DIRECT\}\}/g, directPeers)
             .replace(/\{\{MAP_CLASS\}\}/g, ENABLE_MAP ? '' : 'hidden')
+            .replace(/\{\{THEMES_CLASS\}\}/g, ENABLE_THEMES ? '' : 'hidden')
             .replace(/\{\{VISUAL_LIMIT\}\}/g, VISUAL_LIMIT);
 
         res.send(html);
