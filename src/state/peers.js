@@ -11,6 +11,12 @@ class PeerManager {
 
     addOrUpdatePeer(id, seq, ip = null) {
         const stored = this.seenPeers.get(id);
+        
+        // If we have a stored peer, only update if the new sequence is higher
+        if (stored && seq <= stored.seq) {
+            return false;
+        }
+
         const wasNew = !stored;
 
         // Track in HyperLogLog for total unique estimation
