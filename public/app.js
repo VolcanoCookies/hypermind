@@ -447,10 +447,23 @@ const getColorFromId = (id) => {
   return "#" + "00000".substring(0, 6 - c.length) + c;
 };
 
+const seenMessageIds = new Set();
+const messageIdHistory = [];
+
 const appendMessage = (msg) => {
   const div = document.createElement("div");
 
   if (msg.type === "CHAT") {
+    if (msg.id) {
+      if (seenMessageIds.has(msg.id)) return;
+      seenMessageIds.add(msg.id);
+      messageIdHistory.push(msg.id);
+      if (messageIdHistory.length > 100) {
+        const oldest = messageIdHistory.shift();
+        seenMessageIds.delete(oldest);
+      }
+    }
+
     // Block check
     if (blockedUsers.has(msg.sender)) return;
 
