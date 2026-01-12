@@ -7,7 +7,7 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 
 COPY public/ ./public/
-COPY server.js hypermind2.svg LICENSE ./
+COPY server.js ./public/hypernode.svg LICENSE ./
 COPY src/ ./src/
 
 ENV PORT=3000
