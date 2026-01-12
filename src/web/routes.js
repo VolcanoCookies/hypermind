@@ -1,58 +1,73 @@
 const express = require("express");
-const fs = require("fs");
 const path = require("path");
 
-const HTML_TEMPLATE = fs.readFileSync(
-    path.join(__dirname, "../../public/index.html"),
-    "utf-8"
-);
+/**
+ * Routes should always be imported here and created in the ./routes folder.
+ * Please let's all make sure we follow coding standards so things don't get too messy.
+ */
+const { setupStatsRoutes } = require("./routes/stats");
+const { setupChatRoutes } = require("./routes/chat");
+const { setupGitHubRoutes } = require("./routes/github");
+const { setupUtilityRoutes } = require("./routes/utility");
+const { setupPageRoutes } = require("./routes/page");
+const { setupSSERoutes } = require("./routes/sse");
 
-const setupRoutes = (app, identity, peerManager, swarm, sseManager, diagnostics) => {
-    app.get("/", (req, res) => {
-        const count = peerManager.size;
-        const directPeers = swarm.getSwarm().connections.size;
+const setupRoutes = (
+  app,
+  identity,
+  peerManager,
+  swarm,
+  sseManager,
+  diagnostics
+) => {
+  app.use(express.json());
 
-        const html = HTML_TEMPLATE
-            .replace(/\{\{COUNT\}\}/g, count)
-            .replace(/\{\{ID\}\}/g, identity.id.slice(0, 8) + "...")
-            .replace(/\{\{DIRECT\}\}/g, directPeers);
+  const utilityDeps = {
+    adjectives: require("../config/constants").ADJECTIVES,
+    nouns: require("../config/constants").NOUNS,
+    generatorLogic: require("../config/constants").GENERATOR_LOGIC,
+  };
 
-        res.send(html);
-    });
+  const pageDeps = {
+    htmlTemplate: require("../config/constants").HTML_TEMPLATE,
+    identity,
+    peerManager,
+    swarm,
+  };
 
-    app.get("/events", (req, res) => {
-        res.setHeader("Content-Type", "text/event-stream");
-        res.setHeader("Cache-Control", "no-cache");
-        res.setHeader("Connection", "keep-alive");
-        res.flushHeaders();
+  const sseDeps = {
+    identity,
+    peerManager,
+    swarm,
+    sseManager,
+    diagnostics,
+  };
 
-        sseManager.addClient(res);
+  const statsDeps = {
+    identity,
+    peerManager,
+    swarm,
+    diagnostics,
+  };
 
-        const data = JSON.stringify({
-            count: peerManager.size,
-            totalUnique: peerManager.totalUniquePeers,
-            direct: swarm.getSwarm().connections.size,
-            id: identity.id,
-            diagnostics: diagnostics.getStats(),
-        });
-        res.write(`data: ${data}\n\n`);
+  const chatDeps = {
+    identity,
+    swarm,
+    sseManager,
+  };
 
-        req.on("close", () => {
-            sseManager.removeClient(res);
-        });
-    });
+  const githubDeps = {
+    repo: require("../config/constants").GITHUB_REPO,
+  };
 
-    app.get("/api/stats", (req, res) => {
-        res.json({
-            count: peerManager.size,
-            totalUnique: peerManager.totalUniquePeers,
-            direct: swarm.getSwarm().connections.size,
-            id: identity.id,
-            diagnostics: diagnostics.getStats(),
-        });
-    });
+  setupUtilityRoutes(app, utilityDeps);
+  setupPageRoutes(app, pageDeps);
+  setupSSERoutes(app, sseDeps);
+  setupStatsRoutes(app, statsDeps);
+  setupChatRoutes(app, chatDeps);
+  setupGitHubRoutes(app, githubDeps);
 
-    app.use(express.static(path.join(__dirname, "../../public")));
-}
+  app.use(express.static(path.join(__dirname, "../../public")));
+};
 
 module.exports = { setupRoutes };

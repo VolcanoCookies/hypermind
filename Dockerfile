@@ -1,4 +1,4 @@
-FROM node:20-slim
+FROM node:24-slim
 
 WORKDIR /app
 
@@ -7,8 +7,8 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 
 COPY public/ ./public/
-COPY server.js hypermind2.svg LICENSE ./
 COPY src/ ./src/
+COPY server.js LICENSE ./
 
 ENV PORT=3000
 ENV NODE_ENV=production

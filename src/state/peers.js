@@ -9,8 +9,14 @@ class PeerManager {
         this.mySeq = 0;
     }
 
-    addOrUpdatePeer(id, seq) {
+    addOrUpdatePeer(id, seq, ip = null) {
         const stored = this.seenPeers.get(id);
+        
+        // If we have a stored peer, only update if the new sequence is higher
+        if (stored && seq <= stored.seq) {
+            return false;
+        }
+
         const wasNew = !stored;
 
         // Track in HyperLogLog for total unique estimation
@@ -19,6 +25,7 @@ class PeerManager {
         this.seenPeers.set(id, {
             seq,
             lastSeen: Date.now(),
+            ip: ip || (stored ? stored.ip : null),
         });
 
         return wasNew;
@@ -49,6 +56,11 @@ class PeerManager {
             if (now - data.lastSeen > PEER_TIMEOUT) {
                 this.seenPeers.delete(id);
                 removed++;
+            } else {
+                // Optimization: Since LRUCache maintains insertion order (updated on access),
+                // the Map is sorted by lastSeen (ascending).
+                // If we find a non-stale peer, all subsequent peers are also non-stale.
+                break;
             }
         }
 
@@ -69,6 +81,16 @@ class PeerManager {
 
     getSeq() {
         return this.mySeq;
+    }
+
+    getPeersWithIps() {
+        const peers = [];
+        for (const [id, data] of this.seenPeers.entries()) {
+            if (data.ip) {
+                peers.push({ id, ip: data.ip });
+            }
+        }
+        return peers;
     }
 }
 

@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "label": "VirusTotal",
+  "message": "0/0 detections",
+  "color": "brightgreen",
+  "namedLogo": "virustotal"
+}
