@@ -32,6 +32,14 @@
 
 ![Catppuccin latte theme screenshot](assets/images/catppuccin-latte-theme.png)
 
+### Dracula
+
+![Dracula theme screenshot](assets/images/dracula-theme.png)
+
+### Alucard
+
+![Alucard theme screenshot](assets/images/alucard-theme.png)
+
 # Contributing custom themes
 
 1. Fork `main` and clone locally to your device.
