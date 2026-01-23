@@ -38,7 +38,7 @@
 
 ### Alucard
 
-![Alucard theme screenshot](assets/images/alucard-theme.png)
+![Dracula Light theme screenshot](assets/images/dracula-light-theme.png)
 
 # Contributing custom themes
 
@@ -58,17 +58,9 @@
         'volcano.css',
         'catppuccin-mocha.css',
         'catppuccin-latte.css',
-"hypermind.css",
-"hypermind-classic.css",
-"tokyo-night.css",
-"nord-dark.css",
-"solarized-light.css",
-"volcano.css",
-"catppuccin-mocha.css",
-"catppuccin-latte.css",
-"dracula.css",
-"dracula-light.css",
-"new-theme.css" // always add to the end of the list
+        'dracula.css',
+        'dracula-light.css',
+        'new-theme.css' // always add to the end of the list
     ];
    ```
 4. Change the colors as you desire. Reference [`index.html`](public/index.html) and [`style.css`](public/style.css) as needed.

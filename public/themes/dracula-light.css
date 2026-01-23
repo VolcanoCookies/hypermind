@@ -32,12 +32,12 @@
     --color-terminal-shadow: rgba(0, 0, 0, 0.3);
     --color-terminal-input-text: #036a96;
     --color-terminal-input-divider: #cfcfde;
-    --color-terminal-output-message: #14710a;
+    --color-terminal-output-message: #3d3d3d;
     --color-terminal-tab-arrow: #a34d14;
     --color-terminal-tab-arrow-hover: #036a96;
     --color-terminal-tab-bg-hover: #cfcfde;
-    --color-terminal-status-message: #6c664b;
-    --color-terminal-scrollbar: #644ac9;
-    --color-terminal-scrollbar-hover: #036a96;
+    --color-terminal-status-message: #8a8a8a;
+    --color-terminal-scrollbar: #b8b8b8;
+    --color-terminal-scrollbar-hover: #8a8a8a;
     --color-terminal-text-default: #a34d14;
 }
