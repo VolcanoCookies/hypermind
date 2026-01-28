@@ -481,7 +481,7 @@ const appendMessage = (msg) => {
       if (seenMessageIds.has(msg.id)) return;
       seenMessageIds.add(msg.id);
       messageIdHistory.push(msg.id);
-      if (messageIdHistory.length > 100) {
+      if (messageIdHistory.length > 1024) {
         const oldest = messageIdHistory.shift();
         seenMessageIds.delete(oldest);
       }
