@@ -1,0 +1,34 @@
+kind: pipeline
+type: kubernetes
+name: default
+
+metadata:
+  namespace: drone
+
+steps:
+  - name: build
+    image: plugins/docker
+    when:
+      branch:
+        - main
+      event:
+        include:
+          - push
+          - tag
+    settings:
+      repo: ghcr.io/volcanocookies/hypermind
+      registry: ghcr.io
+      tags:
+        - latest
+      build_args_from_env:
+        - DRONE_COMMIT
+        - DRONE_BUILD_STARTED
+      username: VolcanoCookies
+      password:
+        from_secret: github-token
+
+  - name: deploy
+    image: bitnami/kubectl:1.33
+    commands:
+      - kubectl -n hypermind rollout restart deploy/hypermind
+      - kubectl -n hypermind rollout status deploy/hypermind --timeout=2m
