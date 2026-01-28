@@ -3,7 +3,7 @@ const { signMessage } = require("../../core/security");
 const { ENABLE_CHAT, CHAT_RATE_LIMIT } = require("../../config/constants");
 
 const setupChatRoutes = (router, dependencies) => {
-    const { identity, swarm, sseManager } = dependencies;
+    const { identity, swarm, sseManager, databaseManager } = dependencies;
     let chatHistory = [];
 
     router.post("/api/chat", (req, res) => {
@@ -53,8 +53,23 @@ const setupChatRoutes = (router, dependencies) => {
 
         swarm.broadcastChat(msg);
         sseManager.broadcast(msg);
+        databaseManager.addMessage(msg).catch(console.error);
 
         res.json({ success: true });
+    });
+
+    router.get("/api/chat/history", async (req, res) => {
+        if (!ENABLE_CHAT) {
+            return res.status(403).json({ error: "Chat disabled" });
+        }
+
+        try {
+            const messages = await databaseManager.getMessages();
+            res.json({ messages });
+        } catch (error) {
+            console.error("Error fetching chat history:", error);
+            res.status(500).json({ error: "Internal server error" });
+        }
     });
 };
 

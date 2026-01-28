@@ -18,7 +18,8 @@ const setupRoutes = (
   peerManager,
   swarm,
   sseManager,
-  diagnostics
+  diagnostics,
+  databaseManager
 ) => {
   app.use(express.json());
 
@@ -54,6 +55,7 @@ const setupRoutes = (
     identity,
     swarm,
     sseManager,
+    databaseManager
   };
 
   const githubDeps = {

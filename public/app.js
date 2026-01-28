@@ -363,7 +363,19 @@ terminalToggle.addEventListener("click", (e) => {
 });
 
 // Initialize chat state from localStorage
-const initChatState = () => {
+const initChatState = async () => {
+  fetch("/api/chat/history", {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  })
+  .then((res) => res.json())
+  .then((data) => {
+    for (const msg of data.messages) {
+      appendMessage(msg);
+    }
+  })
+  .catch((err) => console.error("Failed to fetch chat history", err));
+
   const isCollapsed = localStorage.getItem("chatCollapsed") === "true";
   const savedHeight = parseInt(localStorage.getItem("chatHeight")) || 250;
 
@@ -383,6 +395,8 @@ const initChatState = () => {
     document.body.classList.remove("chat-collapsed");
     document.body.style.paddingBottom = `${terminal.offsetHeight}px`;
   }
+
+  scrollToBottom();
 };
 
 const toggleChat = () => {
@@ -557,6 +571,9 @@ const appendMessage = (msg) => {
   }
 
   terminalOutput.appendChild(div);
+};
+
+const scrollToBottom = () => {
   terminalOutput.scrollTop = terminalOutput.scrollHeight;
 };
 

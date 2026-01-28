@@ -7,6 +7,7 @@ const { MessageHandler } = require("./src/p2p/messaging");
 const { relayMessage } = require("./src/p2p/relay");
 const { SwarmManager } = require("./src/p2p/swarm");
 const { SSEManager } = require("./src/web/sse");
+const { DatabaseManager } = require("./src/state/database");
 const { createServer, startServer } = require("./src/web/server");
 const { DIAGNOSTICS_INTERVAL, ENABLE_CHAT, ENABLE_MAP } = require("./src/config/constants");
 
@@ -15,6 +16,8 @@ const main = async () => {
   const peerManager = new PeerManager();
   const diagnostics = new DiagnosticsManager();
   const sseManager = new SSEManager();
+  const databaseManager = new DatabaseManager(process.env.MONGO_URL || "mongodb://localhost:27017");
+  await databaseManager.connect();
 
   peerManager.addOrUpdatePeer(identity.id, peerManager.getSeq());
 
@@ -33,6 +36,7 @@ const main = async () => {
 
   const chatCallback = (msg) => {
     sseManager.broadcast(msg);
+    databaseManager.addMessage(msg).catch(console.error);
   };
 
   const chatSystemFn = (msg) => {
@@ -69,7 +73,7 @@ const main = async () => {
     broadcastUpdate();
   }, DIAGNOSTICS_INTERVAL);
 
-  const app = createServer(identity, peerManager, swarmManager, sseManager, diagnostics);
+  const app = createServer(identity, peerManager, swarmManager, sseManager, diagnostics, databaseManager);
   startServer(app, identity);
 
   const handleShutdown = () => {
