@@ -7,6 +7,7 @@ class DatabaseManager {
 
     async connect() {
         await this.client.connect();
+        console.log("Connected to MongoDB");
 
         this.database = this.client.db('hypermind');
         this.messages = this.database.collection('messages');
