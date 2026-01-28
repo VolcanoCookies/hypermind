@@ -28,7 +28,7 @@ steps:
         from_secret: github-token
 
   - name: deploy
-    image: bitnami/kubectl:1.33
+    image: alpine/kubectl:1.33.3
     commands:
       - kubectl -n hypermind rollout restart deploy/hypermind
       - kubectl -n hypermind rollout status deploy/hypermind --timeout=2m
